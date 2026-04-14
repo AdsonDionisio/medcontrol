@@ -36,7 +36,7 @@ class AppRouter {
     return MaterialPageRoute<void>(
       settings: RouteSettings(name: routeName),
       builder: (_) => MainShellPage(
-        currentRoute: routeName,
+        initialRoute: routeName,
         pages: const [
           HomePage(),
           MedicationsPage(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -23,6 +24,17 @@ class SettingsPage extends StatelessWidget {
                 Text(
                   'Area reservada para preferencias, notificacoes e ajustes de acessibilidade.',
                   style: theme.textTheme.bodyLarge,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.person_outline),
+                  title: const Text('Dados do Paciente'),
+                  subtitle: const Text('Alterar nome e idade'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).pushNamed(AppRoutes.patient);
+                  },
                 ),
               ],
             ),

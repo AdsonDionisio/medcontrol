@@ -1,11 +1,11 @@
 {
-    "name": "medcontrol_frontend",
-    "short_name": "medcontrol_frontend",
+    "name": "MedControl",
+    "short_name": "MedControl",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Aplicativo do MedControl",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

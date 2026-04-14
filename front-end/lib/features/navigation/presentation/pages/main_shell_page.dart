@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/app_routes.dart';
 
-class MainShellPage extends StatelessWidget {
+class MainShellPage extends StatefulWidget {
   const MainShellPage({
     super.key,
-    required this.currentRoute,
+    required this.initialRoute,
     required this.pages,
   });
 
-  final String currentRoute;
+  final String initialRoute;
   final List<Widget> pages;
 
+  @override
+  State<MainShellPage> createState() => _MainShellPageState();
+}
+
+class _MainShellPageState extends State<MainShellPage> {
   static const _destinations = <({String route, String label, IconData icon})>[
     (route: AppRoutes.home, label: 'Inicio', icon: Icons.home_outlined),
     (
@@ -41,32 +46,36 @@ class MainShellPage extends StatelessWidget {
     ),
   ];
 
-  int get _currentIndex {
-    final index = _destinations.indexWhere(
-      (destination) => destination.route == currentRoute,
-    );
+  late int _currentIndex;
 
-    return index >= 0 ? index : 0;
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = _destinations.indexWhere(
+      (destination) => destination.route == widget.initialRoute,
+    );
+    if (_currentIndex < 0) _currentIndex = 0;
   }
 
-  void _onDestinationSelected(BuildContext context, int index) {
-    final destination = _destinations[index];
-
-    if (destination.route == currentRoute) {
+  void _onDestinationSelected(int index) {
+    if (_currentIndex == index) {
       return;
     }
-
-    Navigator.of(context).pushReplacementNamed(destination.route);
+    setState(() {
+      _currentIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: pages),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: widget.pages,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) =>
-            _onDestinationSelected(context, index),
+        onDestinationSelected: _onDestinationSelected,
         destinations: _destinations
             .map(
               (destination) => NavigationDestination(

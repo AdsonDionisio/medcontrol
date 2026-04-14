@@ -22,21 +22,31 @@ const MedicationSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'dosage': PropertySchema(id: 1, name: r'dosage', type: IsarType.string),
+    r'currentQuantity': PropertySchema(
+      id: 1,
+      name: r'currentQuantity',
+      type: IsarType.long,
+    ),
+    r'dosage': PropertySchema(id: 2, name: r'dosage', type: IsarType.string),
     r'instructions': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'instructions',
       type: IsarType.string,
     ),
-    r'isActive': PropertySchema(id: 3, name: r'isActive', type: IsarType.bool),
-    r'name': PropertySchema(id: 4, name: r'name', type: IsarType.string),
-    r'patientInternalId': PropertySchema(
+    r'isActive': PropertySchema(id: 4, name: r'isActive', type: IsarType.bool),
+    r'minimumQuantity': PropertySchema(
       id: 5,
+      name: r'minimumQuantity',
+      type: IsarType.long,
+    ),
+    r'name': PropertySchema(id: 6, name: r'name', type: IsarType.string),
+    r'patientInternalId': PropertySchema(
+      id: 7,
       name: r'patientInternalId',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -114,12 +124,14 @@ void _medicationSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.dosage);
-  writer.writeString(offsets[2], object.instructions);
-  writer.writeBool(offsets[3], object.isActive);
-  writer.writeString(offsets[4], object.name);
-  writer.writeString(offsets[5], object.patientInternalId);
-  writer.writeDateTime(offsets[6], object.updatedAt);
+  writer.writeLong(offsets[1], object.currentQuantity);
+  writer.writeString(offsets[2], object.dosage);
+  writer.writeString(offsets[3], object.instructions);
+  writer.writeBool(offsets[4], object.isActive);
+  writer.writeLong(offsets[5], object.minimumQuantity);
+  writer.writeString(offsets[6], object.name);
+  writer.writeString(offsets[7], object.patientInternalId);
+  writer.writeDateTime(offsets[8], object.updatedAt);
 }
 
 Medication _medicationDeserialize(
@@ -130,13 +142,15 @@ Medication _medicationDeserialize(
 ) {
   final object = Medication();
   object.createdAt = reader.readDateTime(offsets[0]);
-  object.dosage = reader.readStringOrNull(offsets[1]);
+  object.currentQuantity = reader.readLong(offsets[1]);
+  object.dosage = reader.readStringOrNull(offsets[2]);
   object.id = id;
-  object.instructions = reader.readStringOrNull(offsets[2]);
-  object.isActive = reader.readBool(offsets[3]);
-  object.name = reader.readString(offsets[4]);
-  object.patientInternalId = reader.readString(offsets[5]);
-  object.updatedAt = reader.readDateTime(offsets[6]);
+  object.instructions = reader.readStringOrNull(offsets[3]);
+  object.isActive = reader.readBool(offsets[4]);
+  object.minimumQuantity = reader.readLong(offsets[5]);
+  object.name = reader.readString(offsets[6]);
+  object.patientInternalId = reader.readString(offsets[7]);
+  object.updatedAt = reader.readDateTime(offsets[8]);
   return object;
 }
 
@@ -150,16 +164,20 @@ P _medicationDeserializeProp<P>(
     case 0:
       return (reader.readDateTime(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -417,6 +435,61 @@ extension MedicationQueryFilter
       return query.addFilterCondition(
         FilterCondition.between(
           property: r'createdAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterFilterCondition>
+  currentQuantityEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'currentQuantity', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterFilterCondition>
+  currentQuantityGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'currentQuantity',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterFilterCondition>
+  currentQuantityLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'currentQuantity',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterFilterCondition>
+  currentQuantityBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'currentQuantity',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -818,6 +891,61 @@ extension MedicationQueryFilter
     });
   }
 
+  QueryBuilder<Medication, Medication, QAfterFilterCondition>
+  minimumQuantityEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'minimumQuantity', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterFilterCondition>
+  minimumQuantityGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'minimumQuantity',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterFilterCondition>
+  minimumQuantityLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'minimumQuantity',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterFilterCondition>
+  minimumQuantityBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'minimumQuantity',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<Medication, Medication, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1183,6 +1311,19 @@ extension MedicationQuerySortBy
     });
   }
 
+  QueryBuilder<Medication, Medication, QAfterSortBy> sortByCurrentQuantity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentQuantity', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterSortBy>
+  sortByCurrentQuantityDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentQuantity', Sort.desc);
+    });
+  }
+
   QueryBuilder<Medication, Medication, QAfterSortBy> sortByDosage() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dosage', Sort.asc);
@@ -1216,6 +1357,19 @@ extension MedicationQuerySortBy
   QueryBuilder<Medication, Medication, QAfterSortBy> sortByIsActiveDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterSortBy> sortByMinimumQuantity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'minimumQuantity', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterSortBy>
+  sortByMinimumQuantityDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'minimumQuantity', Sort.desc);
     });
   }
 
@@ -1271,6 +1425,19 @@ extension MedicationQuerySortThenBy
     });
   }
 
+  QueryBuilder<Medication, Medication, QAfterSortBy> thenByCurrentQuantity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentQuantity', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterSortBy>
+  thenByCurrentQuantityDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentQuantity', Sort.desc);
+    });
+  }
+
   QueryBuilder<Medication, Medication, QAfterSortBy> thenByDosage() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dosage', Sort.asc);
@@ -1316,6 +1483,19 @@ extension MedicationQuerySortThenBy
   QueryBuilder<Medication, Medication, QAfterSortBy> thenByIsActiveDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterSortBy> thenByMinimumQuantity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'minimumQuantity', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QAfterSortBy>
+  thenByMinimumQuantityDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'minimumQuantity', Sort.desc);
     });
   }
 
@@ -1365,6 +1545,12 @@ extension MedicationQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Medication, Medication, QDistinct> distinctByCurrentQuantity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'currentQuantity');
+    });
+  }
+
   QueryBuilder<Medication, Medication, QDistinct> distinctByDosage({
     bool caseSensitive = true,
   }) {
@@ -1384,6 +1570,12 @@ extension MedicationQueryWhereDistinct
   QueryBuilder<Medication, Medication, QDistinct> distinctByIsActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isActive');
+    });
+  }
+
+  QueryBuilder<Medication, Medication, QDistinct> distinctByMinimumQuantity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'minimumQuantity');
     });
   }
 
@@ -1427,6 +1619,12 @@ extension MedicationQueryProperty
     });
   }
 
+  QueryBuilder<Medication, int, QQueryOperations> currentQuantityProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'currentQuantity');
+    });
+  }
+
   QueryBuilder<Medication, String?, QQueryOperations> dosageProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'dosage');
@@ -1442,6 +1640,12 @@ extension MedicationQueryProperty
   QueryBuilder<Medication, bool, QQueryOperations> isActiveProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isActive');
+    });
+  }
+
+  QueryBuilder<Medication, int, QQueryOperations> minimumQuantityProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'minimumQuantity');
     });
   }
 

@@ -14,6 +14,8 @@ class Medication {
 
   String? dosage;
   String? instructions;
+  int currentQuantity = 0;
+  int minimumQuantity = 0;
   bool isActive = true;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();

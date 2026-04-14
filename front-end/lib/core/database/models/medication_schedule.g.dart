@@ -23,28 +23,33 @@ const MedicationScheduleSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'medicationId': PropertySchema(
+    r'intervalDays': PropertySchema(
       id: 1,
+      name: r'intervalDays',
+      type: IsarType.long,
+    ),
+    r'medicationId': PropertySchema(
+      id: 2,
       name: r'medicationId',
       type: IsarType.long,
     ),
     r'notificationsEnabled': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'notificationsEnabled',
       type: IsarType.bool,
     ),
     r'recurrence': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'recurrence',
       type: IsarType.string,
     ),
     r'timeLabel': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'timeLabel',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -97,11 +102,12 @@ void _medicationScheduleSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeLong(offsets[1], object.medicationId);
-  writer.writeBool(offsets[2], object.notificationsEnabled);
-  writer.writeString(offsets[3], object.recurrence);
-  writer.writeString(offsets[4], object.timeLabel);
-  writer.writeDateTime(offsets[5], object.updatedAt);
+  writer.writeLong(offsets[1], object.intervalDays);
+  writer.writeLong(offsets[2], object.medicationId);
+  writer.writeBool(offsets[3], object.notificationsEnabled);
+  writer.writeString(offsets[4], object.recurrence);
+  writer.writeString(offsets[5], object.timeLabel);
+  writer.writeDateTime(offsets[6], object.updatedAt);
 }
 
 MedicationSchedule _medicationScheduleDeserialize(
@@ -113,11 +119,12 @@ MedicationSchedule _medicationScheduleDeserialize(
   final object = MedicationSchedule();
   object.createdAt = reader.readDateTime(offsets[0]);
   object.id = id;
-  object.medicationId = reader.readLong(offsets[1]);
-  object.notificationsEnabled = reader.readBool(offsets[2]);
-  object.recurrence = reader.readString(offsets[3]);
-  object.timeLabel = reader.readString(offsets[4]);
-  object.updatedAt = reader.readDateTime(offsets[5]);
+  object.intervalDays = reader.readLong(offsets[1]);
+  object.medicationId = reader.readLong(offsets[2]);
+  object.notificationsEnabled = reader.readBool(offsets[3]);
+  object.recurrence = reader.readString(offsets[4]);
+  object.timeLabel = reader.readString(offsets[5]);
+  object.updatedAt = reader.readDateTime(offsets[6]);
   return object;
 }
 
@@ -133,12 +140,14 @@ P _medicationScheduleDeserializeProp<P>(
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -457,6 +466,61 @@ extension MedicationScheduleQueryFilter
       return query.addFilterCondition(
         FilterCondition.between(
           property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterFilterCondition>
+  intervalDaysEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'intervalDays', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterFilterCondition>
+  intervalDaysGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'intervalDays',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterFilterCondition>
+  intervalDaysLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'intervalDays',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterFilterCondition>
+  intervalDaysBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'intervalDays',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -894,6 +958,20 @@ extension MedicationScheduleQuerySortBy
   }
 
   QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterSortBy>
+  sortByIntervalDays() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'intervalDays', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterSortBy>
+  sortByIntervalDaysDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'intervalDays', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterSortBy>
   sortByMedicationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'medicationId', Sort.asc);
@@ -995,6 +1073,20 @@ extension MedicationScheduleQuerySortThenBy
   }
 
   QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterSortBy>
+  thenByIntervalDays() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'intervalDays', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterSortBy>
+  thenByIntervalDaysDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'intervalDays', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QAfterSortBy>
   thenByMedicationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'medicationId', Sort.asc);
@@ -1075,6 +1167,13 @@ extension MedicationScheduleQueryWhereDistinct
   }
 
   QueryBuilder<MedicationSchedule, MedicationSchedule, QDistinct>
+  distinctByIntervalDays() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'intervalDays');
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, MedicationSchedule, QDistinct>
   distinctByMedicationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'medicationId');
@@ -1122,6 +1221,13 @@ extension MedicationScheduleQueryProperty
   createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<MedicationSchedule, int, QQueryOperations>
+  intervalDaysProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'intervalDays');
     });
   }
 

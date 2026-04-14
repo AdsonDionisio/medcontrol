@@ -11,6 +11,7 @@ class MedicationSchedule {
 
   late String timeLabel;
   String recurrence = 'daily';
+  int intervalDays = 1;
   bool notificationsEnabled = true;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();

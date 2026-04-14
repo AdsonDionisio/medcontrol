@@ -3,9 +3,35 @@ import 'package:flutter/material.dart';
 import '../../../../app/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../patient/data/patient_repository.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final _patientRepository = PatientRepository();
+  bool _hasPatient = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPatient();
+  }
+
+  Future<void> _checkPatient() async {
+    final patient = await _patientRepository.getCurrentPatient();
+    if (mounted) {
+      setState(() {
+        _hasPatient = patient != null;
+        _isLoading = false;
+      });
+    }
+  }
 
   static const _shortcuts =
       <({String title, String description, String route, IconData icon})>[
@@ -54,6 +80,10 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -63,36 +93,47 @@ class HomePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Card(
-                  color: AppColors.surfaceSoft,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Inicio', style: theme.textTheme.titleLarge),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          'Escolha uma area principal para continuar no MedControl.',
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          'O cadastro basico do paciente ja pode ser salvo localmente no dispositivo.',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pushNamed(AppRoutes.patient);
-                          },
-                          child: const Text('Cadastrar paciente'),
-                        ),
-                      ],
+                if (!_hasPatient) ...[
+                  Card(
+                    color: AppColors.surfaceSoft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Inicio', style: theme.textTheme.titleLarge),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            'Escolha uma area principal para continuar no MedControl.',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            'O cadastro basico do paciente ja pode ser salvo localmente no dispositivo.',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await Navigator.of(context).pushNamed(AppRoutes.patient);
+                              _checkPatient();
+                            },
+                            child: const Text('Cadastrar paciente'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.lg),
+                ] else ...[
+                  Text('Inicio', style: theme.textTheme.titleLarge),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Escolha uma area principal para continuar no MedControl.',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
                 Text('Acessos rapidos', style: theme.textTheme.titleLarge),
                 const SizedBox(height: AppSpacing.md),
                 ..._shortcuts.map(
