@@ -1,6 +1,7 @@
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'models/app_settings.dart';
 import 'models/backup_settings.dart';
 import 'models/dose_record.dart';
 import 'models/health_measurement.dart';
@@ -32,6 +33,7 @@ class AppDatabase {
         DoseRecordSchema,
         HealthMeasurementSchema,
         BackupSettingsSchema,
+        AppSettingsSchema,
       ],
       directory: resolvedDirectory,
       name: name,

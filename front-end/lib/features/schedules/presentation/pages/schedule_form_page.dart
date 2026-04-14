@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../../../core/database/models/medication.dart';
@@ -47,11 +48,19 @@ class _ScheduleFormPageState extends State<ScheduleFormPage> {
       now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1])
     );
     
+    final payloadJson = jsonEncode({
+      'medicationId': widget.medication.id,
+      'scheduleId': schedule.id,
+      'title': 'Hora do Medicamento!',
+      'body': 'Não se esqueça de tomar: ${widget.medication.name}',
+    });
+
     await NotificationService().scheduleNotification(
       id: schedule.id,
       title: 'Hora do Medicamento!',
       body: 'Não se esqueça de tomar: ${widget.medication.name}',
       scheduledDate: scheduledDate,
+      payload: payloadJson,
     );
     
     if (mounted) {
