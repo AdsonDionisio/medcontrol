@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.medcontrol_frontend"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

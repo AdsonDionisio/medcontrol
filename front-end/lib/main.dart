@@ -7,9 +7,9 @@ import 'core/services/notification_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppDatabase.instance.initialize();
-  
+
   await NotificationService().init();
   await NotificationService().requestPermissions();
-  
+
   runApp(const MedControlApp());
 }

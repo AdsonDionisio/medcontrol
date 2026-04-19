@@ -11,4 +11,5 @@ class BackupSettings {
   String frequency = 'weekly';
   DateTime? lastBackupAt;
   String backupLocation = 'local';
+  String? lastBackupPath;
 }

@@ -35,17 +35,19 @@ class _MedicationsPageState extends State<MedicationsPage> {
   }
 
   void _navigateToAdd() async {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const MedicationFormPage()),
-    );
+    final result = await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const MedicationFormPage()));
     if (result == true) {
       _loadMedications();
     }
   }
-  
+
   void _navigateToDetail(Medication medication) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => MedicationDetailPage(medication: medication)),
+      MaterialPageRoute(
+        builder: (_) => MedicationDetailPage(medication: medication),
+      ),
     );
     _loadMedications();
   }
@@ -70,25 +72,30 @@ class _MedicationsPageState extends State<MedicationsPage> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _medications.isEmpty
-                ? const Center(child: Text('Nenhum medicamento cadastrado.'))
-                : ListView.builder(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    itemCount: _medications.length,
-                    itemBuilder: (context, index) {
-                      final med = _medications[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: ListTile(
-                          title: Text(med.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(
-                            med.dosage != null ? 'Dosagem: ${med.dosage}' : 'Sem dosagem',
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _navigateToDetail(med),
-                        ),
-                      );
-                    },
-                  ),
+            ? const Center(child: Text('Nenhum medicamento cadastrado.'))
+            : ListView.builder(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                itemCount: _medications.length,
+                itemBuilder: (context, index) {
+                  final med = _medications[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: ListTile(
+                      title: Text(
+                        med.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        med.dosage != null
+                            ? 'Dosagem: ${med.dosage}'
+                            : 'Sem dosagem',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _navigateToDetail(med),
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }

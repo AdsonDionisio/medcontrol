@@ -5,7 +5,7 @@ import '../../../core/database/models/health_measurement.dart';
 
 class MeasurementRepository {
   MeasurementRepository({AppDatabase? database})
-      : _database = database ?? AppDatabase.instance;
+    : _database = database ?? AppDatabase.instance;
 
   final AppDatabase _database;
 
@@ -30,7 +30,9 @@ class MeasurementRepository {
     });
   }
 
-  Future<void> saveBatchMeasurements(List<HealthMeasurement> measurements) async {
+  Future<void> saveBatchMeasurements(
+    List<HealthMeasurement> measurements,
+  ) async {
     await _database.isar.writeTxn(() async {
       await _database.isar.healthMeasurements.putAll(measurements);
     });
@@ -46,14 +48,14 @@ class MeasurementRepository {
     if (type != null) {
       query = query.typeEqualTo(type, caseSensitive: false);
     }
-    
+
     if (start != null && end != null) {
       query = query.measuredAtBetween(start, end);
     }
 
     final results = await query.findAll();
     results.sort((a, b) => b.measuredAt.compareTo(a.measuredAt));
-    
+
     return results;
   }
 

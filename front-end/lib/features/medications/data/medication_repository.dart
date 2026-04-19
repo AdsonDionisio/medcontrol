@@ -8,8 +8,8 @@ class MedicationRepository {
   MedicationRepository({
     AppDatabase? database,
     PatientRepository? patientRepository,
-  })  : _database = database ?? AppDatabase.instance,
-        _patientRepository = patientRepository ?? PatientRepository();
+  }) : _database = database ?? AppDatabase.instance,
+       _patientRepository = patientRepository ?? PatientRepository();
 
   final AppDatabase _database;
   final PatientRepository _patientRepository;
@@ -49,7 +49,7 @@ class MedicationRepository {
     if (id != null) {
       medication = await _database.isar.medications.get(id);
     }
-    
+
     medication ??= Medication()
       ..createdAt = now
       ..patientInternalId = patient.internalId;

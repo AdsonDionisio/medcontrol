@@ -34,14 +34,16 @@ class _MedicationDetailPageState extends State<MedicationDetailPage> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     // Refresh med in case it was edited
     final med = await _medRepo.getMedicationById(_medication.id);
     if (med != null) _medication = med;
 
-    final schedules = await _scheduleRepo.getSchedulesByMedication(_medication.id);
+    final schedules = await _scheduleRepo.getSchedulesByMedication(
+      _medication.id,
+    );
     if (!mounted) return;
-    
+
     setState(() {
       _schedules = schedules;
       _isLoading = false;
@@ -50,7 +52,9 @@ class _MedicationDetailPageState extends State<MedicationDetailPage> {
 
   void _editMedication() async {
     final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => MedicationFormPage(medication: _medication)),
+      MaterialPageRoute(
+        builder: (_) => MedicationFormPage(medication: _medication),
+      ),
     );
     if (result == true) _loadData();
   }
@@ -60,12 +64,20 @@ class _MedicationDetailPageState extends State<MedicationDetailPage> {
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('Excluir Medicamento?'),
-        content: const Text('Essa acao tambem removera todos os agendamentos vinculados (se existirem na base vinculada).'),
+        content: const Text(
+          'Essa acao tambem removera todos os agendamentos vinculados (se existirem na base vinculada).',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Excluir', style: TextStyle(color: Colors.red))),
-        ]
-      )
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
 
     if (confirm == true) {
@@ -79,11 +91,13 @@ class _MedicationDetailPageState extends State<MedicationDetailPage> {
 
   void _addSchedule() async {
     final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ScheduleFormPage(medication: _medication)),
+      MaterialPageRoute(
+        builder: (_) => ScheduleFormPage(medication: _medication),
+      ),
     );
     if (result == true) _loadData();
   }
-  
+
   void _deleteSchedule(int id) async {
     await _scheduleRepo.deleteSchedule(id);
     _loadData();
@@ -105,7 +119,10 @@ class _MedicationDetailPageState extends State<MedicationDetailPage> {
         title: Text(_medication.name),
         actions: [
           IconButton(icon: const Icon(Icons.edit), onPressed: _editMedication),
-          IconButton(icon: const Icon(Icons.delete), onPressed: _deleteMedication),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _deleteMedication,
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -133,7 +150,7 @@ class _MedicationDetailPageState extends State<MedicationDetailPage> {
                       if (_medication.instructions?.isNotEmpty == true) ...[
                         const SizedBox(height: AppSpacing.sm),
                         Text('Observações: ${_medication.instructions}'),
-                      ]
+                      ],
                     ],
                   ),
                 ),
@@ -147,24 +164,37 @@ class _MedicationDetailPageState extends State<MedicationDetailPage> {
                 const Card(
                   child: Padding(
                     padding: EdgeInsets.all(AppSpacing.lg),
-                    child: Center(child: Text('Nenhum agendamento para este medicamento.')),
+                    child: Center(
+                      child: Text('Nenhum agendamento para este medicamento.'),
+                    ),
                   ),
                 )
               else
-                ..._schedules.map((s) => Card(
-                  margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: ListTile(
-                    leading: const Icon(Icons.access_time),
-                    title: Text(s.timeLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    subtitle: Text(_formatRecurrence(s)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      onPressed: () => _deleteSchedule(s.id),
+                ..._schedules.map(
+                  (s) => Card(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: ListTile(
+                      leading: const Icon(Icons.access_time),
+                      title: Text(
+                        s.timeLabel,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      subtitle: Text(_formatRecurrence(s)),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => _deleteSchedule(s.id),
+                      ),
                     ),
                   ),
-                )),
-                
-               const SizedBox(height: 80), // Fab space
+                ),
+
+              const SizedBox(height: 80), // Fab space
             ],
           ),
         ),

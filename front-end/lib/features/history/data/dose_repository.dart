@@ -5,7 +5,7 @@ import '../../../core/database/models/dose_record.dart';
 
 class DoseRepository {
   DoseRepository({AppDatabase? database})
-      : _database = database ?? AppDatabase.instance;
+    : _database = database ?? AppDatabase.instance;
 
   final AppDatabase _database;
 
@@ -22,7 +22,7 @@ class DoseRepository {
     if (id != null) {
       record = await _database.isar.doseRecords.get(id);
     }
-    
+
     record ??= DoseRecord()
       ..medicationId = medicationId
       ..scheduleId = scheduleId
@@ -40,7 +40,10 @@ class DoseRepository {
     return record;
   }
 
-  Future<List<DoseRecord>> getRecordsByDateRange(DateTime start, DateTime end) async {
+  Future<List<DoseRecord>> getRecordsByDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
     return _database.isar.doseRecords
         .filter()
         .scheduledForBetween(start, end)

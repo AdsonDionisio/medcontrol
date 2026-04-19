@@ -20,7 +20,7 @@ class _MedicationFormPageState extends State<MedicationFormPage> {
   final _instructionsController = TextEditingController();
   final _currentQtyController = TextEditingController(text: '0');
   final _minimumQtyController = TextEditingController(text: '0');
-  
+
   final _repository = MedicationRepository();
   bool _isSaving = false;
 
@@ -45,8 +45,12 @@ class _MedicationFormPageState extends State<MedicationFormPage> {
       await _repository.saveMedication(
         id: widget.medication?.id,
         name: _nameController.text,
-        dosage: _dosageController.text.isNotEmpty ? _dosageController.text : null,
-        instructions: _instructionsController.text.isNotEmpty ? _instructionsController.text : null,
+        dosage: _dosageController.text.isNotEmpty
+            ? _dosageController.text
+            : null,
+        instructions: _instructionsController.text.isNotEmpty
+            ? _instructionsController.text
+            : null,
         currentQuantity: int.tryParse(_currentQtyController.text) ?? 0,
         minimumQuantity: int.tryParse(_minimumQtyController.text) ?? 0,
       );
@@ -59,9 +63,9 @@ class _MedicationFormPageState extends State<MedicationFormPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao salvar: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
         setState(() => _isSaving = false);
       }
     }
@@ -83,7 +87,9 @@ class _MedicationFormPageState extends State<MedicationFormPage> {
     final isEditing = widget.medication != null;
 
     return Scaffold(
-      appBar: AppBar(title: Text(isEditing ? 'Editar Medicamento' : 'Novo Medicamento')),
+      appBar: AppBar(
+        title: Text(isEditing ? 'Editar Medicamento' : 'Novo Medicamento'),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -95,50 +101,76 @@ class _MedicationFormPageState extends State<MedicationFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Dados do Medicamento', style: theme.textTheme.titleLarge),
+                    Text(
+                      'Dados do Medicamento',
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const SizedBox(height: AppSpacing.lg),
                     TextFormField(
                       controller: _nameController,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(labelText: 'Nome do Medicamento *'),
-                      validator: (value) => 
-                        value == null || value.trim().isEmpty ? 'Informe o nome.' : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Nome do Medicamento *',
+                      ),
+                      validator: (value) =>
+                          value == null || value.trim().isEmpty
+                          ? 'Informe o nome.'
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextFormField(
                       controller: _dosageController,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(labelText: 'Dosagem (ex: 500mg)'),
+                      decoration: const InputDecoration(
+                        labelText: 'Dosagem (ex: 500mg)',
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextFormField(
                       controller: _instructionsController,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(labelText: 'Observações / Instruções'),
+                      decoration: const InputDecoration(
+                        labelText: 'Observações / Instruções',
+                      ),
                       maxLines: 3,
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    Text('Controle de Estoque', style: theme.textTheme.titleMedium),
+                    Text(
+                      'Controle de Estoque',
+                      style: theme.textTheme.titleMedium,
+                    ),
                     const SizedBox(height: AppSpacing.sm),
                     Row(
                       children: [
-                        Expanded(child: TextFormField(
-                          controller: _currentQtyController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Qtd. Atual', helperText: 'Em posse'),
-                        )),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _currentQtyController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Qtd. Atual',
+                              helperText: 'Em posse',
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: AppSpacing.md),
-                        Expanded(child: TextFormField(
-                          controller: _minimumQtyController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Qtd. Mínima', helperText: 'Alerta reposição'),
-                        )),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _minimumQtyController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Qtd. Mínima',
+                              helperText: 'Alerta reposição',
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     ElevatedButton(
                       onPressed: _isSaving ? null : _save,
-                      child: Text(_isSaving ? 'Salvando...' : 'Salvar Medicamento'),
+                      child: Text(
+                        _isSaving ? 'Salvando...' : 'Salvar Medicamento',
+                      ),
                     ),
                   ],
                 ),

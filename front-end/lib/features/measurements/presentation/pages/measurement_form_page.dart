@@ -39,50 +39,55 @@ class _MeasurementFormPageState extends State<MeasurementFormPage> {
 
   Future<void> _save() async {
     if (!_includeBp && !_includeO2 && !_includeGlucose) {
-       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione ao menos um indicador para aferir!')),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecione ao menos um indicador para aferir!'),
+        ),
       );
       return;
     }
 
     setState(() => _isSaving = true);
-    
+
     final batch = <HealthMeasurement>[];
-    
+
     if (_includeBp) {
       final sys = double.tryParse(_sysController.text) ?? 0;
       final dia = double.tryParse(_diaController.text) ?? 0;
       if (sys > 0 && dia > 0) {
-        batch.add(HealthMeasurement()
-          ..type = 'blood_pressure'
-          ..primaryValue = sys
-          ..secondaryValue = dia
-          ..unit = 'mmHg'
-          ..measuredAt = DateTime.now()
+        batch.add(
+          HealthMeasurement()
+            ..type = 'blood_pressure'
+            ..primaryValue = sys
+            ..secondaryValue = dia
+            ..unit = 'mmHg'
+            ..measuredAt = DateTime.now(),
         );
       }
     }
-    
+
     if (_includeO2) {
       final o2 = double.tryParse(_o2Controller.text) ?? 0;
       if (o2 > 0) {
-        batch.add(HealthMeasurement()
-          ..type = 'blood_oxygen'
-          ..primaryValue = o2
-          ..unit = '%'
-          ..measuredAt = DateTime.now()
+        batch.add(
+          HealthMeasurement()
+            ..type = 'blood_oxygen'
+            ..primaryValue = o2
+            ..unit = '%'
+            ..measuredAt = DateTime.now(),
         );
       }
     }
-    
+
     if (_includeGlucose) {
       final glucose = double.tryParse(_glucoseController.text) ?? 0;
       if (glucose > 0) {
-        batch.add(HealthMeasurement()
-          ..type = 'blood_sugar'
-          ..primaryValue = glucose
-          ..unit = 'mg/dL'
-          ..measuredAt = DateTime.now()
+        batch.add(
+          HealthMeasurement()
+            ..type = 'blood_sugar'
+            ..primaryValue = glucose
+            ..unit = 'mg/dL'
+            ..measuredAt = DateTime.now(),
         );
       }
     }
@@ -110,7 +115,7 @@ class _MeasurementFormPageState extends State<MeasurementFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-               _buildCheckCard(
+              _buildCheckCard(
                 title: 'Pressão Arterial',
                 subtitle: 'Ex: 120 por 80 mmHg',
                 icon: Icons.favorite,
@@ -118,54 +123,71 @@ class _MeasurementFormPageState extends State<MeasurementFormPage> {
                 onChanged: (val) => setState(() => _includeBp = val ?? false),
                 child: Row(
                   children: [
-                     Expanded(child: TextField(
-                       controller: _sysController,
-                       keyboardType: TextInputType.number,
-                       decoration: const InputDecoration(labelText: 'Sistólica (Maior)', border: OutlineInputBorder()),
-                     )),
-                     const SizedBox(width: AppSpacing.sm),
-                     Expanded(child: TextField(
-                       controller: _diaController,
-                       keyboardType: TextInputType.number,
-                       decoration: const InputDecoration(labelText: 'Diastólica (Menor)', border: OutlineInputBorder()),
-                     )),
+                    Expanded(
+                      child: TextField(
+                        controller: _sysController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Sistólica (Maior)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: TextField(
+                        controller: _diaController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Diastólica (Menor)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
                   ],
-                )
-               ),
-               const SizedBox(height: AppSpacing.md),
-               
-               _buildCheckCard(
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              _buildCheckCard(
                 title: 'Saturação (Oxigênio)',
                 subtitle: 'Ex: 98 %',
                 icon: Icons.air,
                 isChecked: _includeO2,
                 onChanged: (val) => setState(() => _includeO2 = val ?? false),
                 child: TextField(
-                   controller: _o2Controller,
-                   keyboardType: TextInputType.number,
-                   decoration: const InputDecoration(labelText: 'Nível de Saturação (%)', border: OutlineInputBorder()),
+                  controller: _o2Controller,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Nível de Saturação (%)',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-               ),
-               const SizedBox(height: AppSpacing.md),
+              ),
+              const SizedBox(height: AppSpacing.md),
 
-               _buildCheckCard(
+              _buildCheckCard(
                 title: 'Glicemia',
                 subtitle: 'Ex: 95 mg/dL',
                 icon: Icons.bloodtype,
                 isChecked: _includeGlucose,
-                onChanged: (val) => setState(() => _includeGlucose = val ?? false),
+                onChanged: (val) =>
+                    setState(() => _includeGlucose = val ?? false),
                 child: TextField(
-                   controller: _glucoseController,
-                   keyboardType: TextInputType.number,
-                   decoration: const InputDecoration(labelText: 'Açúcar no Sangue (mg/dL)', border: OutlineInputBorder()),
+                  controller: _glucoseController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Açúcar no Sangue (mg/dL)',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-               ),
-               
-               const SizedBox(height: AppSpacing.xl),
-               ElevatedButton(
-                 onPressed: _isSaving ? null : _save,
-                 child: Text(_isSaving ? 'Salvando...' : 'Salvar Registros'),
-               )
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+              ElevatedButton(
+                onPressed: _isSaving ? null : _save,
+                child: Text(_isSaving ? 'Salvando...' : 'Salvar Registros'),
+              ),
             ],
           ),
         ),
@@ -188,16 +210,19 @@ class _MeasurementFormPageState extends State<MeasurementFormPage> {
         child: Column(
           children: [
             CheckboxListTile(
-              title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               subtitle: Text(subtitle),
-              secondary: Icon(icon, color: isChecked ? Colors.deepPurple : Colors.grey),
+              secondary: Icon(
+                icon,
+                color: isChecked ? Colors.deepPurple : Colors.grey,
+              ),
               value: isChecked,
               onChanged: onChanged,
             ),
-            if (isChecked) ...[
-               const SizedBox(height: AppSpacing.sm),
-               child,
-            ]
+            if (isChecked) ...[const SizedBox(height: AppSpacing.sm), child],
           ],
         ),
       ),

@@ -4,20 +4,21 @@ import '../../../core/database/app_database.dart';
 import '../../../core/database/models/medication_schedule.dart';
 
 class ScheduleRepository {
-  ScheduleRepository({
-    AppDatabase? database,
-  }) : _database = database ?? AppDatabase.instance;
+  ScheduleRepository({AppDatabase? database})
+    : _database = database ?? AppDatabase.instance;
 
   final AppDatabase _database;
 
-  Future<List<MedicationSchedule>> getSchedulesByMedication(int medicationId) async {
+  Future<List<MedicationSchedule>> getSchedulesByMedication(
+    int medicationId,
+  ) async {
     return _database.isar.medicationSchedules
         .filter()
         .medicationIdEqualTo(medicationId)
         .sortByTimeLabel()
         .findAll();
   }
-  
+
   Future<List<MedicationSchedule>> getAllSchedules() async {
     return _database.isar.medicationSchedules
         .where()
@@ -43,7 +44,7 @@ class ScheduleRepository {
     if (id != null) {
       schedule = await _database.isar.medicationSchedules.get(id);
     }
-    
+
     schedule ??= MedicationSchedule()
       ..createdAt = now
       ..medicationId = medicationId;

@@ -37,6 +37,11 @@ const BackupSettingsSchema = CollectionSchema(
       name: r'lastBackupAt',
       type: IsarType.dateTime,
     ),
+    r'lastBackupPath': PropertySchema(
+      id: 4,
+      name: r'lastBackupPath',
+      type: IsarType.string,
+    ),
   },
 
   estimateSize: _backupSettingsEstimateSize,
@@ -62,6 +67,12 @@ int _backupSettingsEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.backupLocation.length * 3;
   bytesCount += 3 + object.frequency.length * 3;
+  {
+    final value = object.lastBackupPath;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -75,6 +86,7 @@ void _backupSettingsSerialize(
   writer.writeString(offsets[1], object.backupLocation);
   writer.writeString(offsets[2], object.frequency);
   writer.writeDateTime(offsets[3], object.lastBackupAt);
+  writer.writeString(offsets[4], object.lastBackupPath);
 }
 
 BackupSettings _backupSettingsDeserialize(
@@ -88,6 +100,7 @@ BackupSettings _backupSettingsDeserialize(
   object.backupLocation = reader.readString(offsets[1]);
   object.frequency = reader.readString(offsets[2]);
   object.lastBackupAt = reader.readDateTimeOrNull(offsets[3]);
+  object.lastBackupPath = reader.readStringOrNull(offsets[4]);
   return object;
 }
 
@@ -106,6 +119,8 @@ P _backupSettingsDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -634,6 +649,165 @@ extension BackupSettingsQueryFilter
       );
     });
   }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'lastBackupPath'),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'lastBackupPath'),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'lastBackupPath',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'lastBackupPath',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'lastBackupPath',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'lastBackupPath',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'lastBackupPath',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'lastBackupPath',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'lastBackupPath',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'lastBackupPath',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'lastBackupPath', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterFilterCondition>
+  lastBackupPathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'lastBackupPath', value: ''),
+      );
+    });
+  }
 }
 
 extension BackupSettingsQueryObject
@@ -696,6 +870,20 @@ extension BackupSettingsQuerySortBy
   sortByLastBackupAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastBackupAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterSortBy>
+  sortByLastBackupPath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastBackupPath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterSortBy>
+  sortByLastBackupPathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastBackupPath', Sort.desc);
     });
   }
 }
@@ -768,6 +956,20 @@ extension BackupSettingsQuerySortThenBy
       return query.addSortBy(r'lastBackupAt', Sort.desc);
     });
   }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterSortBy>
+  thenByLastBackupPath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastBackupPath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QAfterSortBy>
+  thenByLastBackupPathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastBackupPath', Sort.desc);
+    });
+  }
 }
 
 extension BackupSettingsQueryWhereDistinct
@@ -801,6 +1003,16 @@ extension BackupSettingsQueryWhereDistinct
   distinctByLastBackupAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastBackupAt');
+    });
+  }
+
+  QueryBuilder<BackupSettings, BackupSettings, QDistinct>
+  distinctByLastBackupPath({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'lastBackupPath',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 }
@@ -837,6 +1049,13 @@ extension BackupSettingsQueryProperty
   lastBackupAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastBackupAt');
+    });
+  }
+
+  QueryBuilder<BackupSettings, String?, QQueryOperations>
+  lastBackupPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastBackupPath');
     });
   }
 }

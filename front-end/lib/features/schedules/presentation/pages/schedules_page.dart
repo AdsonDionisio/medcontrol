@@ -1,12 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/database/models/medication.dart';
 import '../../../../core/database/models/medication_schedule.dart';
+import '../../../../core/services/app_settings_repository.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../history/data/dose_repository.dart';
 import '../../../medications/data/medication_repository.dart';
 import '../../data/schedule_repository.dart';
-import '../../../history/data/dose_repository.dart';
-import '../../../../core/services/notification_service.dart';
 
 class SchedulesPage extends StatefulWidget {
   const SchedulesPage({super.key});
@@ -19,6 +22,7 @@ class _SchedulesPageState extends State<SchedulesPage> {
   final _scheduleRepo = ScheduleRepository();
   final _medRepo = MedicationRepository();
   final _doseRepo = DoseRepository();
+  final _notificationService = NotificationService();
 
   bool _isLoading = true;
   List<Map<String, dynamic>> _agendaItems = [];
@@ -31,115 +35,214 @@ class _SchedulesPageState extends State<SchedulesPage> {
 
   Future<void> _loadAgenda() async {
     setState(() => _isLoading = true);
-    
-    // Obter todas medicações e agendamentos
-    final meds = await _medRepo.getMedications();
-    final medMap = {for (var m in meds) m.id: m};
-    
+
+    final medications = await _medRepo.getMedications();
+    final medicationById = {
+      for (final medication in medications) medication.id: medication,
+    };
     final allSchedules = await _scheduleRepo.getAllSchedules();
-    
-    // Simplificando o "Agenda do Dia" calculando os eventos que deveriam ser engatilhados hoje
+
     final today = DateTime.now();
-    final items = <Map<String, dynamic>>[];
-    
-    for (var schedule in allSchedules) {
-      final med = medMap[schedule.medicationId];
-      if (med == null || !med.isActive) continue;
-      
-      bool isScheduledForToday = false;
-      
-      if (schedule.recurrence == 'daily') {
-        isScheduledForToday = true;
-      } else if (schedule.recurrence == 'weekly') {
-        if (schedule.createdAt.weekday == today.weekday) isScheduledForToday = true;
-      } else if (schedule.recurrence == 'interval') {
-        final diff = today.difference(schedule.createdAt).inDays;
-        if (diff % schedule.intervalDays == 0) isScheduledForToday = true;
+    final todayStart = DateTime(today.year, today.month, today.day);
+    final todayEnd = DateTime(
+      today.year,
+      today.month,
+      today.day,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    final records = await _doseRepo.getRecordsByDateRange(todayStart, todayEnd);
+    final latestBySchedule = <int, dynamic>{};
+    for (final record in records) {
+      if (record.scheduleId == null) {
+        continue;
       }
-      
-      if (isScheduledForToday) {
-        items.add({
-          'schedule': schedule,
-          'medication': med,
-          'timeLabel': schedule.timeLabel,
-          'status': 'Pendente', // Futuramente ligado a DoseRecord
-        });
+
+      final scheduleId = record.scheduleId!;
+      final existing = latestBySchedule[scheduleId];
+      if (existing == null ||
+          record.scheduledFor.isAfter(existing.scheduledFor)) {
+        latestBySchedule[scheduleId] = record;
       }
     }
-    
-    // Ordenar por horario
-    items.sort((a, b) => (a['timeLabel'] as String).compareTo(b['timeLabel'] as String));
 
-    if (mounted) {
-      setState(() {
-        _agendaItems = items;
-        _isLoading = false;
+    final items = <Map<String, dynamic>>[];
+
+    for (final schedule in allSchedules) {
+      final medication = medicationById[schedule.medicationId];
+      if (medication == null || !medication.isActive) {
+        continue;
+      }
+
+      if (!_isScheduledForToday(schedule, today)) {
+        continue;
+      }
+
+      final record = latestBySchedule[schedule.id];
+      var status = 'Pendente';
+      var statusColor = Colors.blue;
+      var statusNote = '';
+      var displayTimeLabel = schedule.timeLabel;
+
+      if (record != null) {
+        if (record.status == 'taken') {
+          status = 'Confirmado';
+          statusColor = Colors.green;
+          final takenAt = record.takenAt;
+          if (takenAt != null) {
+            statusNote =
+                'Confirmado as ${takenAt.hour.toString().padLeft(2, '0')}:${takenAt.minute.toString().padLeft(2, '0')}';
+          }
+        } else if (record.status == 'postponed') {
+          status = 'Adiado';
+          statusColor = Colors.orange;
+          displayTimeLabel =
+              '${record.scheduledFor.hour.toString().padLeft(2, '0')}:${record.scheduledFor.minute.toString().padLeft(2, '0')}';
+          statusNote = 'Adiado para $displayTimeLabel';
+        }
+      }
+
+      items.add({
+        'schedule': schedule,
+        'medication': medication,
+        'displayTimeLabel': displayTimeLabel,
+        'status': status,
+        'statusColor': statusColor,
+        'statusNote': statusNote,
       });
     }
+
+    items.sort(
+      (a, b) => (a['displayTimeLabel'] as String).compareTo(
+        b['displayTimeLabel'] as String,
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _agendaItems = items;
+      _isLoading = false;
+    });
   }
 
-  Future<void> _takeDose(Medication med, MedicationSchedule schedule) async {
-    // Registra a dose
+  bool _isScheduledForToday(MedicationSchedule schedule, DateTime today) {
+    if (schedule.recurrence == 'daily') {
+      return true;
+    }
+
+    if (schedule.recurrence == 'weekly') {
+      return schedule.createdAt.weekday == today.weekday;
+    }
+
+    if (schedule.recurrence == 'interval') {
+      final diff = today.difference(schedule.createdAt).inDays;
+      return diff >= 0 && diff % schedule.intervalDays == 0;
+    }
+
+    return false;
+  }
+
+  Future<void> _takeDose(
+    Medication medication,
+    MedicationSchedule schedule,
+  ) async {
     await _doseRepo.saveRecord(
-      medicationId: med.id,
+      medicationId: medication.id,
       scheduleId: schedule.id,
       scheduledFor: DateTime.now(),
       takenAt: DateTime.now(),
       status: 'taken',
     );
 
-    // Abate o estoque se possivel
-    if (med.currentQuantity > 0) {
+    await _notificationService.cancelNotification(schedule.id);
+    await _notificationService.removePendingAlarm(scheduleId: schedule.id);
+
+    if (medication.currentQuantity > 0) {
+      final updatedQuantity = medication.currentQuantity - 1;
       await _medRepo.saveMedication(
-        id: med.id, 
-        name: med.name,
-        currentQuantity: med.currentQuantity - 1,
-        minimumQuantity: med.minimumQuantity,
-        dosage: med.dosage,
-        instructions: med.instructions,
+        id: medication.id,
+        name: medication.name,
+        currentQuantity: updatedQuantity,
+        minimumQuantity: medication.minimumQuantity,
+        dosage: medication.dosage,
+        instructions: medication.instructions,
       );
-      
-      // Checa estoque critico
-      if ((med.currentQuantity - 1) <= med.minimumQuantity) {
-        NotificationService().showImmediateNotification(
-          id: med.id * 100,
-          title: '🚨 Estoque Baixo!',
-          body: 'A medicação "${med.name}" está se esgotando. Reponha o estoque!',
+
+      if (updatedQuantity <= medication.minimumQuantity) {
+        await _notificationService.showImmediateNotification(
+          id: medication.id * 100,
+          title: 'Estoque baixo',
+          body: 'A medicacao "${medication.name}" esta perto do fim.',
         );
       }
     }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${med.name} confirmado as ${DateTime.now().hour}:${DateTime.now().minute}')),
-      );
-      _loadAgenda();
+    if (!mounted) {
+      return;
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${medication.name} confirmado as ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+        ),
+      ),
+    );
+    await _loadAgenda();
   }
 
-  Future<void> _postponeDose(Medication med, MedicationSchedule schedule) async {
-    // Salva historico de adiamento
+  Future<void> _postponeDose(
+    Medication medication,
+    MedicationSchedule schedule,
+  ) async {
+    final settingsRepo = AppSettingsRepository(database: null);
+    final settings = await settingsRepo.getSettings();
+    final newTime = DateTime.now().add(
+      Duration(minutes: settings.snoozeMinutes),
+    );
+
     await _doseRepo.saveRecord(
-      medicationId: med.id,
+      medicationId: medication.id,
       scheduleId: schedule.id,
-      scheduledFor: DateTime.now(),
+      scheduledFor: newTime,
       status: 'postponed',
     );
-    
-    // Agenda alerta para +30 mins
-    NotificationService().showImmediateNotification(
-      id: schedule.id * 200,
-      title: 'Adiado: ${med.name}',
-      body: 'Você adiou a medicação. Lembramos daqui a pouco!',
-    ); // O ideal seria usar zonedSchedule com 30min delay
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dose adiada em 30 minutos.')),
-      );
-      // Recarrega agenda se necessario
-      _loadAgenda();
+
+    await _notificationService.cancelNotification(schedule.id);
+    await _notificationService.removePendingAlarm(scheduleId: schedule.id);
+
+    final payloadJson = jsonEncode({
+      'medicationId': medication.id,
+      'scheduleId': schedule.id,
+      'title': 'Hora do Medicamento!',
+      'body': 'Nao se esqueca de tomar: ${medication.name}',
+    });
+
+    await _notificationService.scheduleNotification(
+      id: _notificationService.createSnoozeNotificationId(schedule.id),
+      title: 'Hora do Medicamento!',
+      body: 'Nao se esqueca de tomar: ${medication.name}',
+      scheduledDate: newTime,
+      payload: payloadJson,
+      repeatDaily: false,
+    );
+
+    if (!mounted) {
+      return;
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Dose adiada em ${settings.snoozeMinutes} minutos.'),
+      ),
+    );
+    await _loadAgenda();
   }
 
   @override
@@ -150,69 +253,130 @@ class _SchedulesPageState extends State<SchedulesPage> {
       appBar: AppBar(
         title: const Text('Agenda do Dia'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAgenda,
-          )
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadAgenda),
         ],
       ),
       body: SafeArea(
-        child: _isLoading 
+        child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _agendaItems.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.event_available, size: 60, color: Colors.grey),
-                        const SizedBox(height: AppSpacing.md),
-                        Text('Nenhuma medicação programada para hoje!', style: theme.textTheme.titleMedium),
-                      ],
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.event_available,
+                      size: 60,
+                      color: Colors.grey,
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    itemCount: _agendaItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _agendaItems[index];
-                      final Medication med = item['medication'];
-                      final MedicationSchedule schedule = item['schedule'];
-                      
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: ListTile(
-                          leading: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Nenhuma medicacao programada para hoje.',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                itemCount: _agendaItems.length,
+                itemBuilder: (context, index) {
+                  final item = _agendaItems[index];
+                  final medication = item['medication'] as Medication;
+                  final schedule = item['schedule'] as MedicationSchedule;
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: ListTile(
+                      leading: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            item['displayTimeLabel'] as String,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      title: Text(
+                        medication.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(medication.dosage ?? 'Dose nao especificada'),
+                          const SizedBox(height: AppSpacing.xs),
+                          Row(
                             children: [
-                              Text(schedule.timeLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 2,
+                                  horizontal: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (item['statusColor'] as Color)
+                                      .withAlpha(38),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  item['status'] as String,
+                                  style: TextStyle(
+                                    color: item['statusColor'] as Color,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              if ((item['statusNote'] as String).isNotEmpty)
+                                Text(
+                                  item['statusNote'] as String,
+                                  style: theme.textTheme.bodySmall,
+                                ),
                             ],
                           ),
-                          title: Text(med.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(med.dosage ?? 'Dose não especificada'),
-                              const SizedBox(height: AppSpacing.sm),
-                              Row(
-                                children: [
-                                  Expanded(child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                                    onPressed: () => _takeDose(med, schedule),
-                                    child: const Text('Confirmar', style: TextStyle(color: Colors.white, fontSize: 10)),
-                                  )),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Expanded(child: OutlinedButton(
-                                    onPressed: () => _postponeDose(med, schedule),
-                                    child: const Text('Adiar', style: TextStyle(fontSize: 10)),
-                                  )),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                          const SizedBox(height: AppSpacing.sm),
+                          if (item['status'] != 'Confirmado')
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green,
+                                    ),
+                                    onPressed: () =>
+                                        _takeDose(medication, schedule),
+                                    child: const Text(
+                                      'Confirmar',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () =>
+                                        _postponeDose(medication, schedule),
+                                    child: const Text(
+                                      'Adiar',
+                                      style: TextStyle(fontSize: 10),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }

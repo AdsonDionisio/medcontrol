@@ -61,4 +61,16 @@ class AppDatabase {
     await current.close();
     _isar = null;
   }
+
+  Future<void> clearUserData() async {
+    final db = await initialize();
+    await db.writeTxn(() async {
+      await db.patients.clear();
+      await db.medications.clear();
+      await db.medicationSchedules.clear();
+      await db.doseRecords.clear();
+      await db.healthMeasurements.clear();
+      await db.backupSettings.clear();
+    });
+  }
 }

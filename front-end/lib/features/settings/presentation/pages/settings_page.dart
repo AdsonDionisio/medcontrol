@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_routes.dart';
+import '../../../../core/database/app_database.dart';
 import '../../../../core/database/models/app_settings.dart';
 import '../../../../core/services/app_settings_repository.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/app_spacing.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -14,6 +16,8 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final _repository = AppSettingsRepository();
+  final _database = AppDatabase.instance;
+  final _notificationService = NotificationService();
   bool _isLoading = true;
   AppSettings? _settings;
 
@@ -39,6 +43,73 @@ class _SettingsPageState extends State<SettingsPage> {
         _settings!.snoozeMinutes = newValue;
       });
       await _repository.updateSnoozeMinutes(newValue);
+    }
+  }
+
+  Future<void> _clearAppData() async {
+    await _database.initialize();
+    await _database.clearUserData();
+    await _notificationService.clearPendingAlarms();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dados limpos com sucesso.')),
+      );
+    }
+  }
+
+  Future<void> _showClearDataDialog() async {
+    final controller = TextEditingController();
+
+    final shouldClear = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirmar limpeza de dados'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Digite exatamente "limpar dados" para confirmar a exclusão de todos os dados de paciente, medicamento, agenda e histórico.',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Frase de confirmação',
+                  hintText: 'limpar dados',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().toLowerCase() == 'limpar dados') {
+                  Navigator.of(context).pop(true);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Texto incorreto. Digite "limpar dados".'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Confirmar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldClear == true) {
+      await _clearAppData();
     }
   }
 
@@ -90,6 +161,28 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () {
                       Navigator.of(context).pushNamed(AppRoutes.patient);
                     },
+                  ),
+                  const Divider(),
+                  Card(
+                    color: Colors.red.withAlpha(13),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.red,
+                      ),
+                      title: const Text('Limpar dados'),
+                      subtitle: const Text(
+                        'Apaga paciente, medicamentos, agenda e histórico. Requer confirmação.',
+                      ),
+                      trailing: TextButton(
+                        onPressed: _showClearDataDialog,
+                        child: const Text(
+                          'Limpar',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ],
