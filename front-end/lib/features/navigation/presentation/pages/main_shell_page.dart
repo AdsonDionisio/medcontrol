@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_routes.dart';
+import '../../../../core/services/page_refresh_notifier.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({
@@ -59,20 +60,31 @@ class _MainShellPageState extends State<MainShellPage> {
 
   void _onDestinationSelected(int index) {
     if (_currentIndex == index) {
+      // Recarrega mesmo se clicar novamente
+      _refreshCurrentPage();
       return;
     }
     setState(() {
       _currentIndex = index;
     });
+    // Recarrega ao mudar de aba
+    _refreshCurrentPage();
+  }
+
+  void _refreshCurrentPage() {
+    // Notifica a página atual para recarregar
+    final route = _destinations[_currentIndex].route;
+    if (route == AppRoutes.schedules) {
+      PageRefreshNotifier().refreshSchedules();
+    } else if (route == AppRoutes.history) {
+      PageRefreshNotifier().refreshHistory();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: widget.pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: widget.pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: _onDestinationSelected,

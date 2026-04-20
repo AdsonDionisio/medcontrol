@@ -5,6 +5,7 @@ import '../../../../core/database/models/medication_schedule.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/services/app_settings_repository.dart';
+import '../../../../core/services/page_refresh_notifier.dart';
 import '../../../medications/data/medication_repository.dart';
 import '../../data/schedule_repository.dart';
 import '../../../history/data/dose_repository.dart';
@@ -29,6 +30,15 @@ class _SchedulesPageState extends State<SchedulesPage> {
   void initState() {
     super.initState();
     _loadAgenda();
+
+    // Listener para recarregar quando a aba é selecionada
+    PageRefreshNotifier().scheduleRefresh.addListener(_loadAgenda);
+  }
+
+  @override
+  void dispose() {
+    PageRefreshNotifier().scheduleRefresh.removeListener(_loadAgenda);
+    super.dispose();
   }
 
   Future<void> _loadAgenda() async {
