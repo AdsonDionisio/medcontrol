@@ -5,6 +5,7 @@ import '../features/history/presentation/pages/history_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/measurements/presentation/pages/measurements_page.dart';
 import '../features/medications/presentation/pages/medications_page.dart';
+import '../features/medications/presentation/pages/medication_reminder_page.dart';
 import '../features/navigation/presentation/pages/main_shell_page.dart';
 import '../features/patient/presentation/pages/patient_form_page.dart';
 import '../features/schedules/presentation/pages/schedules_page.dart';
@@ -26,6 +27,17 @@ class AppRouter {
       return MaterialPageRoute<void>(
         settings: const RouteSettings(name: AppRoutes.patient),
         builder: (_) => const PatientFormPage(),
+      );
+    }
+
+    if (settings.name == AppRoutes.medicationReminder) {
+      final args = settings.arguments as Map<String, dynamic>?;
+      return MaterialPageRoute<void>(
+        settings: const RouteSettings(name: AppRoutes.medicationReminder),
+        builder: (_) => MedicationReminderPage(
+          medicationId: args?['medicationId'] ?? 0,
+          scheduleId: args?['scheduleId'] ?? 0,
+        ),
       );
     }
 

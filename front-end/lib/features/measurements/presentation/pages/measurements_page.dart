@@ -19,7 +19,7 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
   final _repository = MeasurementRepository();
   bool _isLoading = true;
   List<HealthMeasurement> _records = [];
-  
+
   String _selectedType = 'blood_pressure';
   PeriodFilter _selectedPeriod = PeriodFilter.days7;
 
@@ -93,17 +93,22 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
             if (_isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
             else if (_records.isEmpty)
-              const Expanded(child: Center(child: Text('Nenhum registro para este período.')))
+              const Expanded(
+                child: Center(
+                  child: Text('Nenhum registro para este período.'),
+                ),
+              )
             else ...[
               _buildSummaryCard(),
               _buildChartSection(),
               const Divider(),
               _buildListSection(),
-            ]
+            ],
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'measurements_add_fab',
         onPressed: _addMeasurement,
         icon: const Icon(Icons.add),
         label: const Text('Nova Aferição'),
@@ -113,16 +118,29 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
 
   Widget _buildTypeFilters() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            _typeChip('Pressão Arterial', 'blood_pressure', Icons.favorite, Colors.red),
+            _typeChip(
+              'Pressão Arterial',
+              'blood_pressure',
+              Icons.favorite,
+              Colors.red,
+            ),
             const SizedBox(width: AppSpacing.sm),
             _typeChip('Saturação (O2)', 'blood_oxygen', Icons.air, Colors.blue),
             const SizedBox(width: AppSpacing.sm),
-            _typeChip('Glicemia', 'blood_sugar', Icons.bloodtype, Colors.orange),
+            _typeChip(
+              'Glicemia',
+              'blood_sugar',
+              Icons.bloodtype,
+              Colors.orange,
+            ),
           ],
         ),
       ),
@@ -152,7 +170,10 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Período de visualização: ', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            'Período de visualização: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           DropdownButton<PeriodFilter>(
             value: _selectedPeriod,
             onChanged: (val) {
@@ -162,10 +183,22 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
               }
             },
             items: const [
-              DropdownMenuItem(value: PeriodFilter.days7, child: Text('Últimos 7 dias')),
-              DropdownMenuItem(value: PeriodFilter.days15, child: Text('Últimos 15 dias')),
-              DropdownMenuItem(value: PeriodFilter.days30, child: Text('Últimos 30 dias')),
-              DropdownMenuItem(value: PeriodFilter.all, child: Text('Todo o histórico')),
+              DropdownMenuItem(
+                value: PeriodFilter.days7,
+                child: Text('Últimos 7 dias'),
+              ),
+              DropdownMenuItem(
+                value: PeriodFilter.days15,
+                child: Text('Últimos 15 dias'),
+              ),
+              DropdownMenuItem(
+                value: PeriodFilter.days30,
+                child: Text('Últimos 30 dias'),
+              ),
+              DropdownMenuItem(
+                value: PeriodFilter.all,
+                child: Text('Todo o histórico'),
+              ),
             ],
           ),
         ],
@@ -189,7 +222,10 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
     final unit = _records.first.unit ?? '';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       child: Card(
         color: Colors.grey.shade100,
         elevation: 0,
@@ -212,9 +248,15 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
   Widget _summaryItem(String label, String value) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.black54, fontSize: 13),
+        ),
         const SizedBox(height: AppSpacing.xs),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
       ],
     );
   }
@@ -224,7 +266,10 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
       return Container(
         height: 150,
         alignment: Alignment.center,
-        child: const Text('Adicione mais de um registro para ver a evolução.', style: TextStyle(color: Colors.grey)),
+        child: const Text(
+          'Adicione mais de um registro para ver a evolução.',
+          style: TextStyle(color: Colors.grey),
+        ),
       );
     }
 
@@ -261,11 +306,17 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
-                  final dt = DateTime.fromMillisecondsSinceEpoch(spot.x.toInt());
-                  final formattedDate = '${dt.day.toString().padLeft(2,'0')}/${dt.month.toString().padLeft(2,'0')} ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+                  final dt = DateTime.fromMillisecondsSinceEpoch(
+                    spot.x.toInt(),
+                  );
+                  final formattedDate =
+                      '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
                   return LineTooltipItem(
                     '$formattedDate\n${spot.y}',
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   );
                 }).toList();
               },
@@ -273,24 +324,34 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
           ),
           gridData: const FlGridData(show: true, drawVerticalLine: false),
           titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40)),
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+            ),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   // Mostra apenas os labels de acordo com a disponibilidade de espacamento
-                  if (value == minX || value == maxX) return const SizedBox.shrink();
+                  if (value == minX || value == maxX)
+                    return const SizedBox.shrink();
                   final dt = DateTime.fromMillisecondsSinceEpoch(value.toInt());
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text('${dt.day}/${dt.month}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                    child: Text(
+                      '${dt.day}/${dt.month}',
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
                   );
                 },
                 interval: (maxX - minX) / 3, // mostramos ~3 datas no rodape
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(show: false),
           lineBarsData: [
@@ -319,12 +380,13 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
     return Expanded(
       child: ListView.separated(
         itemCount: _records.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        separatorBuilder: (_, _) => const Divider(height: 1),
         itemBuilder: (context, index) {
           final record = _records[index];
           String valueText = record.primaryValue.toStringAsFixed(0);
-          if (_selectedType == 'blood_pressure' && record.secondaryValue != null) {
-             valueText += ' / ${record.secondaryValue!.toStringAsFixed(0)}';
+          if (_selectedType == 'blood_pressure' &&
+              record.secondaryValue != null) {
+            valueText += ' / ${record.secondaryValue!.toStringAsFixed(0)}';
           }
           valueText += ' ${record.unit}';
 
@@ -333,8 +395,13 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
               backgroundColor: Colors.blue.shade50,
               child: const Icon(Icons.favorite_border, color: Colors.blue),
             ),
-            title: Text(valueText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            subtitle: Text('${record.measuredAt.day.toString().padLeft(2,'0')}/${record.measuredAt.month.toString().padLeft(2,'0')} às ${record.measuredAt.hour.toString().padLeft(2,'0')}:${record.measuredAt.minute.toString().padLeft(2,'0')}'),
+            title: Text(
+              valueText,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            subtitle: Text(
+              '${record.measuredAt.day.toString().padLeft(2, '0')}/${record.measuredAt.month.toString().padLeft(2, '0')} às ${record.measuredAt.hour.toString().padLeft(2, '0')}:${record.measuredAt.minute.toString().padLeft(2, '0')}',
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               onPressed: () => _confirmDelete(record.id),
@@ -352,7 +419,10 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
         title: const Text('Excluir aferição?'),
         content: const Text('Essa ação não pode ser desfeita.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);

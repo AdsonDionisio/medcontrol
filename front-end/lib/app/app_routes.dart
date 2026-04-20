@@ -9,6 +9,7 @@ class AppRoutes {
   static const settings = '/settings';
   static const backup = '/backup';
   static const patient = '/patient';
+  static const medicationReminder = '/medication-reminder';
 
   static const mainRoutes = <String>[
     home,
