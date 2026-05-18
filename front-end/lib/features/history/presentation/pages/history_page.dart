@@ -60,10 +60,12 @@ class _HistoryPageState extends State<HistoryPage> {
 
   List<DoseRecord> get _filteredRecords {
     if (_statusFilter == 'Todos') return _records;
-    if (_statusFilter == 'Tomados')
+    if (_statusFilter == 'Tomados') {
       return _records.where((r) => r.status == 'taken').toList();
-    if (_statusFilter == 'Adiados')
+    }
+    if (_statusFilter == 'Adiados') {
       return _records.where((r) => r.status == 'postponed').toList();
+    }
     return _records;
   }
 

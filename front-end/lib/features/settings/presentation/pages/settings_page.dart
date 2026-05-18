@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_routes.dart';
+import '../../../../core/database/app_database.dart';
 import '../../../../core/database/models/app_settings.dart';
 import '../../../../core/services/app_settings_repository.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -40,6 +41,71 @@ class _SettingsPageState extends State<SettingsPage> {
       });
       await _repository.updateSnoozeMinutes(newValue);
     }
+  }
+
+  void _showClearDataDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Limpar Dados'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Esta ação não pode ser desfeita. Digite "Limpar dados" para confirmar:',
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'Digite "Limpar dados"',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (controller.text == 'Limpar dados') {
+                await _clearAllData();
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Dados deletados com sucesso!'),
+                    ),
+                  );
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Texto incorreto. Digite "Limpar dados"'),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Deletar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _clearAllData() async {
+    final db = AppDatabase.instance;
+    await db.isar.writeTxn(() async {
+      await db.isar.clear();
+    });
   }
 
   @override
@@ -90,6 +156,33 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () {
                       Navigator.of(context).pushNamed(AppRoutes.patient);
                     },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.backup_outlined),
+                    title: const Text('Backup'),
+                    subtitle: const Text('Fazer backup dos dados'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(AppRoutes.backup);
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                    ),
+                    title: const Text(
+                      'Limpar Dados',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    subtitle: const Text(
+                      'Deletar todos os dados do aplicativo',
+                    ),
+                    onTap: _showClearDataDialog,
                   ),
                 ],
               ],

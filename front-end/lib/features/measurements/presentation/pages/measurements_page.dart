@@ -332,8 +332,9 @@ class _MeasurementsPageState extends State<MeasurementsPage> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   // Mostra apenas os labels de acordo com a disponibilidade de espacamento
-                  if (value == minX || value == maxX)
+                  if (value == minX || value == maxX) {
                     return const SizedBox.shrink();
+                  }
                   final dt = DateTime.fromMillisecondsSinceEpoch(value.toInt());
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
