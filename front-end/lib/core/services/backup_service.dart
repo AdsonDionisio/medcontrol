@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:isar_community/isar.dart';
 
-import '../../database/app_database.dart';
-import '../../database/models/patient.dart';
-import '../../database/models/medication.dart';
-import '../../database/models/medication_schedule.dart';
-import '../../database/models/dose_record.dart';
-import '../../database/models/health_measurement.dart';
-import '../../database/models/app_settings.dart';
+import '../database/app_database.dart';
+import '../database/models/patient.dart';
+import '../database/models/medication.dart';
+import '../database/models/medication_schedule.dart';
+import '../database/models/dose_record.dart';
+import '../database/models/health_measurement.dart';
+import '../database/models/app_settings.dart';
 
 class BackupService {
   // TODO: Configure this URL based on your backend deployment
@@ -29,11 +30,12 @@ class BackupService {
       }
 
       // Get all related data
-      final medications = await db.isar.medications.where().findAll();
-      final schedules = await db.isar.medicationSchedules.where().findAll();
-      final history = await db.isar.doseRecords.where().findAll();
+      final medications = await db.isar.medications.where().anyId().findAll();
+      final schedules = await db.isar.medicationSchedules.where().anyId().findAll();
+      final history = await db.isar.doseRecords.where().anyId().findAll();
       final healthMeasurements = await db.isar.healthMeasurements
           .where()
+          .anyId()
           .findAll();
       final settings = await db.isar.appSettings.get(1);
 
@@ -85,9 +87,10 @@ class BackupService {
               (hm) => {
                 'id': hm.id,
                 'type': hm.type,
-                'value': hm.value,
+                'primary_value': hm.primaryValue,
+                'secondary_value': hm.secondaryValue,
                 'unit': hm.unit,
-                'recorded_at': hm.recordedAt.toIso8601String(),
+                'measured_at': hm.measuredAt.toIso8601String(),
                 'notes': hm.notes,
               },
             )
